@@ -8,6 +8,6 @@ export const validateBlog = Joi.object({
 
 
 export const validateSearch = Joi.object({
-    search: Joi.string().max(10)
-})
+  search: Joi.string().allow("").optional(),
+});
 

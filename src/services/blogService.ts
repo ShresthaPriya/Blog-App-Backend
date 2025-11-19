@@ -10,8 +10,9 @@ export const createBlog = async (
   image?: string | null
 ) => {
     
-  const slug_id = uuidv4().substring(0, 8);
-  const slug = `${slugify(title)}-${slug_id}`;
+  const slug_id = uuidv4().substring(0, 8); //generates unique identifier and takes first 8 charracters
+  const slug = `${slugify(title)}-${slug_id}`; //Combines the slugified title and the short UUID with a dash
+
 
   const result = await pool.query(
     `INSERT INTO blog (title, description, image, slug, author_id)
@@ -30,7 +31,7 @@ export const getBlog = async (id: number) => {
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE b.id=$1`,
+     WHERE b.id=$1 AND b.is_deleted = FALSE`,
     [id]
   );
   return result.rows[0];
@@ -41,7 +42,7 @@ export const getBlogBySlug = async (slug: string) => {
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE b.slug=$1`,
+     WHERE b.slug=$1 AND b.is_deleted = FALSE`,
     [slug]
   );
   return result.rows[0];
@@ -55,7 +56,7 @@ export const getAllBlogs = async (page?: number, limit?: number, search?:string)
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE (title ILIKE $3 OR description ILIKE $3)
+     WHERE (title ILIKE $3 OR description ILIKE $3) AND b.is_deleted = FALSE
      ORDER BY b.id DESC
      LIMIT $1 OFFSET $2`,
     [_limit, offset, searchQuery]
@@ -85,7 +86,7 @@ export const getBlogsByAuthor = async (author_id: number) => {
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE b.author_id=$1
+     WHERE b.author_id=$1 AND b.is_deleted = FALSE
      ORDER BY b.created_at DESC`,
     [author_id]
   );
@@ -102,7 +103,7 @@ export const updateBlog = async (
 ) => {
   const slug_id = uuidv4().substring(0, 8);
   const slug = title ? `${slugify(title)}-${slug_id}` : undefined;
-
+   
   const result = await pool.query(
     `UPDATE blog
      SET title = COALESCE($1, title),
@@ -110,7 +111,7 @@ export const updateBlog = async (
          slug = COALESCE($3, slug),
          image = COALESCE($4, image),
          author_id = COALESE($5, author_id)
-     WHERE id = $6
+     WHERE id = $6 
      RETURNING *`,
     [title, description, slug, image, auther_id, id]
   );
@@ -119,8 +120,9 @@ export const updateBlog = async (
 
 // Delete blog
 export const deleteBlog = async (id: number) => {
+  
   const result = await pool.query(
-    `DELETE FROM blog
+    `UPDATE blog SET is_deleted = TRUE, deleted_at = NOW() 
      WHERE id=$1
      RETURNING *`,
     [id]
