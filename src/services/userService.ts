@@ -9,6 +9,11 @@ export const createUserService = async (name: string, profile: string | null) =>
   return result.rows[0];
 };
 
+export const userExistsService = async(name:string)=>{
+  const result = await pool.query(`SELECT * FROM "user" WHERE name= $1 `, [name]);
+  return result.rows[0] || null; 
+} 
+
 // Get user by ID
 export const getUserByIdService = async (id: string) => {
   const result = await pool.query(`SELECT * FROM "user" WHERE id=$1`, [id]);

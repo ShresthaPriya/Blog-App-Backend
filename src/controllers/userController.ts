@@ -5,24 +5,45 @@ import {
   getAllUsersService,
   updateUserService,
   deleteUserService,
-} from "../services/userService.js";
+  userExistsService,
 
-// Create user with optional image
+} from "../services/userService.js";
+import { validateUser } from "../validators/userValidator.js";
+
+
 export const createUser = async (req: Request, res: Response) => {
   const { name } = req.body;
-  const profile = req.file ? req.file.filename : null;
+  const { error, value } = validateUser.validate({ name });
+  if (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: error.details?.[0]?.message || "Invalid input" });
+  }
 
-  if (!name)
-    return res.status(400).json({ message: "Name is required" });
-
+  //check if user exist by name for now
   try {
-    const user = await createUserService(name, profile);
-    return res.status(201).json({ message: "User created successfully", data: user });
+    const existingUser = await userExistsService(value.name);
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ success: false, message: "User already exists" });
+    }
+
+    const profile = req.file ? req.file.filename : null;
+    const user = await createUserService(value.name, profile);
+
+    return res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: user,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
 
 // Get user by ID
 export const getUserById = async (req: Request, res: Response) => {
