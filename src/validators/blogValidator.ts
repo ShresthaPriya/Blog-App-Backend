@@ -6,3 +6,8 @@ export const validateBlog = Joi.object({
     author_id: Joi.number().required()
 });
 
+
+export const validateSearch = Joi.object({
+    search: Joi.string().max(10)
+})
+

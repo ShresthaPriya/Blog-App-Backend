@@ -7,16 +7,23 @@ import {
   deleteBlog,
   getBlogBySlug,
   getBlogsByAuthor,
+
 } from "../services/blogService.js";
+
+import { validateBlog , validateSearch} from "../validators/blogValidator.js";
 
 // Create Blog
 export const CreateBlog = async (req: Request, res: Response) => {
   const { title, description, author_id } = req.body;
+  const {error} = validateBlog.validate({title, description, author_id});
+ if (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: error.details?.[0]?.message});
+  }
   const image = req.file ? req.file.filename : null;
 
-  if (!title || !description || !author_id) {
-    return res.status(400).json({ message: "Title, description, and author_id are required" });
-  }
+
 
   try {
     const blog = await createBlog(title, description, Number(author_id), image);
@@ -64,6 +71,13 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
   const page = Number(req.query.page);
   const limit = Number(req.query.limit);
   const search = String(req.query.search);
+  const {error} = validateSearch.validate({search});
+
+  if(error){
+    return res
+      .status(400)
+      .json({ success: false, message: error.details?.[0]?.message});
+  }
 
   try {
     const blogs = await getAllBlogs(page, limit, search);
@@ -95,13 +109,20 @@ export const getBlogsForAuthor = async (req: Request, res: Response) => {
 // Update blog
 export const updateBlogPost = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
-  const { title, description } = req.body;
+  const { title, description, author_id } = req.body;
   const image = req.file ? req.file.filename : null;
+  const {error} = validateBlog.validate({title, description, author_id});
+
+  if(error){
+    return res
+      .status(400)
+      .json({ success: false, message: error.details?.[0]?.message});
+  }
 
   if (!id) return res.status(400).json({ message: "Id not found." });
 
   try {
-    const updatedBlog = await updateBlog(id, title, description, image);
+    const updatedBlog = await updateBlog(id, title, description, author_id, image);
     if (!updatedBlog) return res.status(404).json({ message: "Blog not found" });
 
     return res.status(200).json({ message: "Blog updated successfully", data: updatedBlog });

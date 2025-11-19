@@ -23,6 +23,8 @@ export const createBlog = async (
 };
 
 
+
+
 export const getBlog = async (id: number) => {
   const result = await pool.query(
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
@@ -95,6 +97,7 @@ export const updateBlog = async (
   id: number,
   title?: string,
   description?: string,
+  auther_id?: Number,
   image?: string | null
 ) => {
   const slug_id = uuidv4().substring(0, 8);
@@ -105,10 +108,11 @@ export const updateBlog = async (
      SET title = COALESCE($1, title),
          description = COALESCE($2, description),
          slug = COALESCE($3, slug),
-         image = COALESCE($4, image)
-     WHERE id = $5
+         image = COALESCE($4, image),
+         author_id = COALESE($5, author_id)
+     WHERE id = $6
      RETURNING *`,
-    [title, description, slug, image, id]
+    [title, description, slug, image, auther_id, id]
   );
   return result.rows[0];
 };
