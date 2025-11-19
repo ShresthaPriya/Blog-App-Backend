@@ -1,27 +1,26 @@
--- *** 1. USER TABLE ***
-CREATE TABLE "user" (
+CREATE TABLE IF NOT EXISTS "user" (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(120) NOT NULL,
-    profile VARCHAR(120),
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    -- Soft Delete Columns
-    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    deleted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    profile VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
----
 
--- *** 2. BLOG TABLE ***
-CREATE TABLE blog (
+CREATE TABLE IF NOT EXISTS blog (
     id SERIAL PRIMARY KEY,
     title VARCHAR(90) NOT NULL,
     description TEXT NOT NULL,
     image VARCHAR(100),
     slug TEXT UNIQUE,
-    -- FIX: Foreign Key correctly references "user"
+
     author_id INT REFERENCES "user"(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    -- Soft Delete Columns
+ 
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     deleted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL
 );
+
+ALTER TABLE blog
+DROP COLUMN is_deleted;

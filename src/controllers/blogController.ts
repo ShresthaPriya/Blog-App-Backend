@@ -133,18 +133,33 @@ export const updateBlogPost = async (req: Request, res: Response) => {
 export const deleteBlogPost = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
+  // Validate id
+  if (!id || isNaN(id)) {
+    return res.status(400).json({ success: false, message: "Invalid or missing blog ID" });
+  }
+
   try {
+    // Check if blog exists and is not deleted
     const checkBlog = await pool.query(
-      `SELECT * FROM blog WHERE id=$1 AND is_deleted = FALSE`,
+      `SELECT * FROM blog WHERE id=$1 AND b.deleted_at IS NULL`,
       [id]
     );
-    if(checkBlog.rows.length === 0){
-      return res.status(404).json({message:"Blog not found"});
+
+    if (checkBlog.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Blog not found or already deleted" });
     }
+
+    // Proceed with soft delete
     const deletedBlog = await deleteBlog(id);
-    return res.status(200).json({ message: "Blog deleted successfully", data: deletedBlog });
+
+    return res.status(200).json({
+      success: true,
+      message: "Blog deleted successfully",
+      data: deletedBlog
+    });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Something went wrong" });
+    return res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
+

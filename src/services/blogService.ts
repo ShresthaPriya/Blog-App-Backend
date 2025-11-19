@@ -31,7 +31,7 @@ export const getBlog = async (id: number) => {
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE b.id=$1 AND b.is_deleted = FALSE`,
+     WHERE b.id=$1 AND b.b.deleted_at IS NULL`,
     [id]
   );
   return result.rows[0];
@@ -42,7 +42,7 @@ export const getBlogBySlug = async (slug: string) => {
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE b.slug=$1 AND b.is_deleted = FALSE`,
+     WHERE b.slug=$1 AND b.deleted_at IS NULL`,
     [slug]
   );
   return result.rows[0];
@@ -56,7 +56,7 @@ export const getAllBlogs = async (page?: number, limit?: number, search?:string)
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE (title ILIKE $3 OR description ILIKE $3) AND b.is_deleted = FALSE
+     WHERE (title ILIKE $3 OR description ILIKE $3) AND b.deleted_at IS NULL
      ORDER BY b.id DESC
      LIMIT $1 OFFSET $2`,
     [_limit, offset, searchQuery]
@@ -86,7 +86,7 @@ export const getBlogsByAuthor = async (author_id: number) => {
     `SELECT b.*, u.name AS author_name, u.profile AS author_profile
      FROM blog b
      JOIN "user" u ON b.author_id = u.id
-     WHERE b.author_id=$1 AND b.is_deleted = FALSE
+     WHERE b.author_id=$1 AND b.deleted_at IS NULL
      ORDER BY b.created_at DESC`,
     [author_id]
   );
@@ -122,7 +122,7 @@ export const updateBlog = async (
 export const deleteBlog = async (id: number) => {
   
   const result = await pool.query(
-    `UPDATE blog SET is_deleted = TRUE, deleted_at = NOW() 
+    `UPDATE blog SET deleted_at = NOW() 
      WHERE id=$1
      RETURNING *`,
     [id]
