@@ -6,18 +6,24 @@ import {
   updateUserService,
   deleteUserService,
   userExistsService,
-
 } from "../services/userService.js";
 import { validateUser } from "../validators/userValidator.js";
 
-
 export const createUser = async (req: Request, res: Response) => {
-  const { name } = req.body;
-  const { error, value } = validateUser.validate({ name });
+  const { name, email, password, role } = req.body;
+  const { error, value } = validateUser.validate({
+    name,
+    email,
+    password,
+    role,
+  });
   if (error) {
     return res
       .status(400)
-      .json({ success: false, message: error.details?.[0]?.message || "Invalid input" });
+      .json({
+        success: false,
+        message: error.details?.[0]?.message || "Invalid input",
+      });
   }
 
   //check if user exist by name for now
@@ -30,7 +36,13 @@ export const createUser = async (req: Request, res: Response) => {
     }
 
     const profile = req.file ? req.file.filename : null;
-    const user = await createUserService(value.name, profile);
+    const user = await createUserService(
+      value.name,
+      value.email,
+      value.password,
+      value.role,
+      profile
+    );
 
     return res.status(201).json({
       success: true,
@@ -43,8 +55,6 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-
-
 // Get user by ID
 export const getUserById = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -53,7 +63,9 @@ export const getUserById = async (req: Request, res: Response) => {
   try {
     const user = await getUserByIdService(id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    return res.status(200).json({ message: "User fetched successfully", data: user });
+    return res
+      .status(200)
+      .json({ message: "User fetched successfully", data: user });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
@@ -64,30 +76,59 @@ export const getUserById = async (req: Request, res: Response) => {
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await getAllUsersService();
-    return res.status(200).json({ message: "Users fetched successfully", data: users });
+    return res
+      .status(200)
+      .json({ message: "Users fetched successfully", data: users });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Update user (optional image)
+// Update user
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { name, email, password, role } = req.body;
+  const { error, value } = validateUser.validate({
+    name,
+    email,
+    password,
+    role,
+  });
+  if (error) {
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: error.details?.[0]?.message || "Invalid input",
+      });
+  }
   const profile = req.file ? req.file.filename : null;
 
   if (!id) return res.status(400).json({ message: "Id required" });
 
   try {
-    const updatedUser = await updateUserService(id, name, profile);
-    if (!updatedUser) return res.status(404).json({ message: "User not found" });
-    return res.status(200).json({ message: "User updated successfully", data: updatedUser });
+    const updatedUser = await updateUserService(
+      id,
+      name,
+      email,
+      password,
+      role,
+      profile
+    );
+
+    if (!updatedUser)
+      return res.status(404).json({ message: "User not found" });
+
+    return res
+      .status(200)
+      .json({ message: "User updated successfully", data: updatedUser });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // Delete user
 export const deleteUser = async (req: Request, res: Response) => {
@@ -96,8 +137,11 @@ export const deleteUser = async (req: Request, res: Response) => {
 
   try {
     const deletedUser = await deleteUserService(id);
-    if (!deletedUser) return res.status(404).json({ message: "User not found" });
-    return res.status(200).json({ message: "User deleted successfully", data: deletedUser });
+    if (!deletedUser)
+      return res.status(404).json({ message: "User not found" });
+    return res
+      .status(200)
+      .json({ message: "User deleted successfully", data: deletedUser });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal server error" });
