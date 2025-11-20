@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  CreateBlog,
+  createBlog,
   getBlogById,
   getBlogUsingSlug,
   getAllBlogPosts,
@@ -13,7 +13,7 @@ import { upload } from "../middleware/upload.js";
 const router = express.Router();
 
 
-router.post("/", upload.single("image"), CreateBlog);
+router.post("/", upload.single("image"), createBlog);
 router.get("/", getAllBlogPosts);
 router.get("/id/:id", getBlogById);
 router.get("/slug/:slug", getBlogUsingSlug);

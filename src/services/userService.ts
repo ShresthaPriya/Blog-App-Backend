@@ -1,18 +1,26 @@
 import { pool } from "../config/dBConfig.js";
 
 // Create a new user
-export const createUserService = async (name: string, profile: string | null) => {
+export const createUserService = async (
+  name: string,
+  email: string,
+  password: string,
+  role: string,
+  profile: string | null
+) => {
   const result = await pool.query(
-    `INSERT INTO "user" (name, profile) VALUES ($1, $2) RETURNING *`,
-    [name, profile]
+    `INSERT INTO "user" (name, email, password, role, profile) VALUES ($1, $2,$3, $4, $5) RETURNING *`,
+    [name, email, password, role, profile]
   );
   return result.rows[0];
 };
 
-export const userExistsService = async(name:string)=>{
-  const result = await pool.query(`SELECT * FROM "user" WHERE name= $1 `, [name]);
-  return result.rows[0] || null; 
-} 
+export const userExistsService = async (name: string) => {
+  const result = await pool.query(`SELECT * FROM "user" WHERE name= $1 `, [
+    name,
+  ]);
+  return result.rows[0] || null;
+};
 
 // Get user by ID
 export const getUserByIdService = async (id: string) => {
@@ -27,18 +35,31 @@ export const getAllUsersService = async () => {
 };
 
 // Update user (optional profile image)
-export const updateUserService = async (id: string, name: string, profile: string | null) => {
+export const updateUserService = async (
+  id: string,
+  name: string,
+  email: string,
+  password: string,
+  role: string,
+  profile: string | null
+) => {
   const result = await pool.query(
-    `UPDATE "user" SET name=$1, profile=$2 WHERE id=$3 RETURNING *`,
-    [name, profile, id]
+    `UPDATE "user"
+     SET name=$1, email=$2, password=$3, role=$4, profile=$5
+     WHERE id=$6 
+     RETURNING *`,
+    [name, email, password, role, profile, id]
   );
+
   return result.rows[0];
 };
 
 // Delete user
 export const deleteUserService = async (id: string) => {
   const result = await pool.query(
-    `DELETE FROM "user" WHERE id=$1 RETURNING *`,
+    `UPDATE "user" SET deleted_at = NOW()
+    WHERE id=$1
+    RETURNING *`,
     [id]
   );
   return result.rows[0];
