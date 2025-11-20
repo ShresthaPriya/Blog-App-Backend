@@ -19,6 +19,6 @@ router.get("/id/:id", getBlogById);
 router.get("/slug/:slug", getBlogUsingSlug);
 router.get("/author/:author_id", getBlogsForAuthor);
 router.put("/:slug", upload.single("image"), updateBlogPost);
-router.delete("/:slug", deleteBlogPost);
+router.delete("/:id", deleteBlogPost);
 
 export default router;
