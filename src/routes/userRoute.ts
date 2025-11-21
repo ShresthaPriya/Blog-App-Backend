@@ -5,24 +5,20 @@ import {
   getAllUsers,
   updateUser,
   deleteUser,
+  loginUser
 } from "../controllers/userController.js";
 import { upload } from "../middleware/upload.js";
+import { authenticate } from "../middleware/authentication.js";
 
 const router = express.Router();
 
-// Create user
-router.post("/", upload.single("profile"), createUser);
+router.post("/register", upload.single("profile"), createUser);
+router.post("/login", loginUser);
 
-// Get all users
-router.get("/", getAllUsers);
-
-// Get single user
-router.get("/:id", getUserById);
-
-// Update user
-router.put("/:id", upload.single("profile"), updateUser);
-
-// Delete user
-router.delete("/:id", deleteUser);
+//protected routes//middleware authenticate
+router.get("/", authenticate, getAllUsers);
+router.get("/:id", authenticate, getUserById);
+router.put("/:id", authenticate, upload.single("profile"), updateUser);
+router.delete("/:id", authenticate, deleteUser);
 
 export default router;
