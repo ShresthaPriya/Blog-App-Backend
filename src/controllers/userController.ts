@@ -6,8 +6,12 @@ import {
   updateUserService,
   deleteUserService,
   userExistsService,
+  loginUserService
 } from "../services/userService.js";
 import { validateUser } from "../validators/userValidator.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
 
 export const createUser = async (req: Request, res: Response) => {
   const { name, email, password, role } = req.body;
@@ -147,3 +151,38 @@ export const deleteUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+//login section
+
+const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
+
+export const loginUser = async (req: Request, res: Response) =>{
+  const {email, password} = req.body;
+
+  try{
+    const user = await loginUserService(email);
+    if(!user)
+      return res.status(401).json({message: "Invalid credentials"});
+    const match = await bcrypt.compare(password, user.password);
+    if(!match)
+      return res.status(401).json({message: "Invalid Credentials"});
+
+    const token = jwt.sign(
+      {id: user.id,
+        role: user.role},
+        JWT_SECRET,
+        {
+          expiresIn: "1h"
+        }
+      
+    );
+    return res.status(200).json({ message: "Login successful", token });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+
+  }
