@@ -1,23 +1,17 @@
 import express from 'express';
-// import dotenv from "dotenv/config";
+import "dotenv/config";
 
 import "./config/dBConfig.js";
-import blogRoutes from './routes/blogRoutes.js'
-
-import userRoute from './routes/userRoute.js'
+import routes from './routes/index.js';
 
 
 const PORT = process.env.PORT || 3000;
 
-//middlewarew
-
-
+//middleware
 const app = express();
 app.use(express.json());
 
-app.use("/blog", blogRoutes);
-app.use("/user", userRoute);
-
+app.use("/api/v1", routes);
 app.use("/uploads", express.static("uploads"));
 
 // http:localhost:4000/blog
